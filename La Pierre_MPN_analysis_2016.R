@@ -67,10 +67,20 @@ cyscDil0 <- dil0%>%
 
 spjuDil0 <- dil0%>%
   filter(soil_spp=='SPJU' | soil_trt=='uninvaded')%>%
+  filter(species!='GEMO', species!='CYSC') 
 
 ###quick plots
 
 #species responses to GEMO invasions
+ggplot(data=barGraphStats(data=subset(dil0, soil_trt=='uninvaded' | soil_trt=='untreated'), variable="total_nods", byFactorNames=c("species", "soil_trt")), aes(x=species, y=mean, fill=soil_trt)) +
+  geom_bar(stat='identity', position=position_dodge()) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
+  xlab('Plant Species') +
+  ylab('Total Nodules') +
+  theme(legend.position=c(0.8,0.93)) +
+  scale_x_discrete(limits=c('GEMO', 'CYSC', 'SPJU', 'ACGL', 'LUBI', 'LUNA')) +
+  scale_fill_discrete(labels=c('uninvaded', 'invaded'))  
+  
 gemoInvPlot <- ggplot(data=barGraphStats(data=subset(gemoDil0, soil_trt=='uninvaded' | soil_trt=='untreated'), variable="total_nods", byFactorNames=c("species", "soil_trt")), aes(x=species, y=mean, fill=soil_trt)) +
   geom_bar(stat='identity', position=position_dodge()) +
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
