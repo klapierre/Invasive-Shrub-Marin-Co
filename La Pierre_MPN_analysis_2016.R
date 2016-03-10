@@ -39,16 +39,19 @@ setwd('C:\\Users\\Kim\\Dropbox\\2015_MarinParks_LaPierre\\marin parks data')
 
 trt <- read.csv('La Pierre_MPN_treatments_2015.csv')
 pots <- read.csv('La Pierre_MPN_pots_2015.csv')
-nods <- read.csv('La Pierre_MPN_harvest_2015.csv')
+nods <- read.csv('La Pierre_MPN_harvest_2015.csv')%>%
+  filter(notes!='no growth', notes!='dead')
 
 nods <- nods%>%
   #combine nodule number and treatment data
   left_join(pots)%>%
   left_join(trt)%>%
+  mutate(func_nods=as.numeric(func_nods), nonf_nods=as.numeric(nonf_nods))%>%
   #calculate total nodules
   mutate(total_nods=func_nods+nonf_nods)%>%
   #drop irrelevent information for now
-  select(pot, func_nods, nonf_nods, total_nods, harvest.date, planting.date, species, dilution, soil_site, soil_spp, soil_trt)
+  select(pot, func_nods, nonf_nods, total_nods, harvest.date, planting.date, species, dilution, soil_site, soil_spp, soil_trt)%>%
+  filter(dilution!='ctl')
 
 #subset out the 10-2 dilution
 dil0 <- nods%>%
@@ -81,41 +84,41 @@ ggplot(data=barGraphStats(data=subset(dil0, soil_trt=='uninvaded' | soil_trt=='u
   scale_x_discrete(limits=c('GEMO', 'CYSC', 'SPJU', 'ACGL', 'LUBI', 'LUNA')) +
   scale_fill_discrete(labels=c('uninvaded', 'invaded'))  
   
-gemoInvPlot <- ggplot(data=barGraphStats(data=subset(gemoDil0, soil_trt=='uninvaded' | soil_trt=='untreated'), variable="total_nods", byFactorNames=c("species", "soil_trt")), aes(x=species, y=mean, fill=soil_trt)) +
-  geom_bar(stat='identity', position=position_dodge()) +
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
-  xlab('Plant Species') +
-  ylab('Total Nodules') +
-  theme(legend.position=c(0.8,0.93)) +
-  scale_x_discrete(limits=c('GEMO', 'ACGL', 'LUBI', 'LUNA')) +
-  scale_fill_discrete(labels=c('uninvaded', 'invaded'))
-
-#species responses to CYSC invasions
-cyscInvPlot <- ggplot(data=barGraphStats(data=cyscDil0, variable="total_nods", byFactorNames=c("species", "soil_trt")), aes(x=species, y=mean, fill=soil_trt)) +
-  geom_bar(stat='identity', position=position_dodge()) +
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
-  xlab('Plant Species') +
-  ylab('Total Nodules') +
-  theme(legend.position='none') +
-  scale_y_continuous(limits=c(0,20)) +
-  scale_x_discrete(limits=c('CYSC', 'ACGL', 'LUBI', 'LUNA'))
-
-#species responses to SPJU invasions
-spjuInvPlot <- ggplot(data=barGraphStats(data=spjuDil0, variable="total_nods", byFactorNames=c("species", "soil_trt")), aes(x=species, y=mean, fill=soil_trt)) +
-  geom_bar(stat='identity', position=position_dodge()) +
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
-  xlab('Plant Species') +
-  ylab('Total Nodules') +
-  theme(legend.position='none') +
-  scale_y_continuous(limits=c(0,20)) +
-  scale_x_discrete(limits=c('SPJU', 'ACGL', 'LUBI', 'LUNA'))
-
-
-#3 panel figure
-pushViewport(viewport(layout=grid.layout(1,3)))
-print(gemoInvPlot, vp=viewport(layout.pos.row=1, layout.pos.col=1))
-print(cyscInvPlot, vp=viewport(layout.pos.row=1, layout.pos.col=2))
-print(spjuInvPlot, vp=viewport(layout.pos.row=1, layout.pos.col=3))
+# gemoInvPlot <- ggplot(data=barGraphStats(data=subset(gemoDil0, soil_trt=='uninvaded' | soil_trt=='untreated'), variable="total_nods", byFactorNames=c("species", "soil_trt")), aes(x=species, y=mean, fill=soil_trt)) +
+#   geom_bar(stat='identity', position=position_dodge()) +
+#   geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
+#   xlab('Plant Species') +
+#   ylab('Total Nodules') +
+#   theme(legend.position=c(0.8,0.93)) +
+#   scale_x_discrete(limits=c('GEMO', 'ACGL', 'LUBI', 'LUNA')) +
+#   scale_fill_discrete(labels=c('uninvaded', 'invaded'))
+# 
+# #species responses to CYSC invasions
+# cyscInvPlot <- ggplot(data=barGraphStats(data=cyscDil0, variable="total_nods", byFactorNames=c("species", "soil_trt")), aes(x=species, y=mean, fill=soil_trt)) +
+#   geom_bar(stat='identity', position=position_dodge()) +
+#   geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
+#   xlab('Plant Species') +
+#   ylab('Total Nodules') +
+#   theme(legend.position='none') +
+#   scale_y_continuous(limits=c(0,20)) +
+#   scale_x_discrete(limits=c('CYSC', 'ACGL', 'LUBI', 'LUNA'))
+# 
+# #species responses to SPJU invasions
+# spjuInvPlot <- ggplot(data=barGraphStats(data=spjuDil0, variable="total_nods", byFactorNames=c("species", "soil_trt")), aes(x=species, y=mean, fill=soil_trt)) +
+#   geom_bar(stat='identity', position=position_dodge()) +
+#   geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
+#   xlab('Plant Species') +
+#   ylab('Total Nodules') +
+#   theme(legend.position='none') +
+#   scale_y_continuous(limits=c(0,20)) +
+#   scale_x_discrete(limits=c('SPJU', 'ACGL', 'LUBI', 'LUNA'))
+# 
+# 
+# #3 panel figure
+# pushViewport(viewport(layout=grid.layout(1,3)))
+# print(gemoInvPlot, vp=viewport(layout.pos.row=1, layout.pos.col=1))
+# print(cyscInvPlot, vp=viewport(layout.pos.row=1, layout.pos.col=2))
+# print(spjuInvPlot, vp=viewport(layout.pos.row=1, layout.pos.col=3))
 
 
 #species responses to GEMO invasions and treatments
