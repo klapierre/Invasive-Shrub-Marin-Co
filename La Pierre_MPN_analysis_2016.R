@@ -28,7 +28,7 @@ barGraphStats <- function(data, variable, byFactorNames) {
   finalSummaryStats <- merge(preSummaryStats, sd, by=byFactorNames)
   finalSummaryStats$se <- finalSummaryStats$sd / sqrt(finalSummaryStats$N)
   return(finalSummaryStats)
-}  
+}
 
 
 ###########################################################################
@@ -53,7 +53,108 @@ nods <- nods%>%
   select(pot, func_nods, nonf_nods, total_nods, harvest.date, planting.date, species, dilution, soil_site, soil_spp, soil_trt)%>%
   filter(dilution!='ctl')
 
-#subset out the 10-2 dilution
+
+###calculating Most Probable Number (MPN)
+
+#table of number of pots nodulated and number of pots possible to be nodulated
+nodsBinary <- nods%>%
+  select(-func_nods, -nonf_nods)%>%
+  #create binary nodulation state variable
+  mutate(nodulated=as.numeric(ifelse(total_nods==0, 0, 1)))%>%
+  select(-total_nods)%>%
+  #calculate number of plants nodulated and total plants possible (N)
+  #note, a few missing individuals from GEMO, LUNA, and ACGL at a few sites bring down their reps from 5 to 4.5 or 4.75 across the dilutions, see below. this is a big problem for LUBI, which should maybe be dropped
+  group_by(species, soil_site, soil_spp, soil_trt, dilution)%>%
+  summarise(nodulated=sum(nodulated), N=n())
+
+#table of number of nodulated pots for each dilution (in columns)
+nodsDilution <- nodsBinary%>%
+  select(-N)%>%
+  #transpose to spread dilutions
+  spread(key=dilution, value=nodulated)
+
+#use BAM Appendix 2 MPN calculator (excel workbook)
+MPN <- read.csv('La Pierre_MPN_MPN estimates_2015.csv')
+
+###TO DO
+# add stats, standardize variables to uninvaded as controls
+
+
+###figures of invaded vs uninvaded areas
+
+#GEMO vs uninvaded
+gemoMPN <- MPN%>%
+  filter(soil_spp=='GEMO' | soil_trt=='uninvaded')%>%
+  filter(species!='CYSC', species!='SPJU')%>%
+  mutate(soil_trt=factor(soil_trt, levels=c('uninvaded', 'untreated', 'herbicided', 'mowed', 'pulled')))
+
+#CYSC vs uninvaded
+cyscMPN <- MPN%>%
+  filter(soil_spp=='CYSC' | soil_trt=='uninvaded')%>%
+  filter(species!='GEMO', species!='SPJU') 
+
+#SPJU vs uninvaded
+spjuMPN <- MPN%>%
+  filter(soil_spp=='SPJU' | soil_trt=='uninvaded')%>%
+  filter(species!='GEMO', species!='CYSC') 
+
+gemoInvPlot <- ggplot(data=barGraphStats(data=subset(gemoMPN, soil_trt=='uninvaded' | soil_trt=='untreated'), variable="MPN", byFactorNames=c("species", "soil_trt")), aes(x=species, y=mean, fill=soil_trt)) +
+  geom_bar(stat='identity', position=position_dodge()) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
+  xlab('Plant Species') +
+  ylab('Most Probable Number (MPN)') +
+  theme(legend.position=c(0.8,0.9)) +
+  scale_y_continuous(limits=c(0,2200)) +
+  scale_x_discrete(limits=c('GEMO', 'ACGL', 'LUBI', 'LUNA')) +
+  scale_fill_discrete(labels=c('uninvaded', 'invaded'))
+
+cyscInvPlot <- ggplot(data=barGraphStats(data=cyscMPN, variable="MPN", byFactorNames=c("species", "soil_trt")), aes(x=species, y=mean, fill=soil_trt)) +
+  geom_bar(stat='identity', position=position_dodge()) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
+  xlab('Plant Species') +
+  ylab('') +
+  theme(legend.position='none') +
+  scale_y_continuous(limits=c(0,2200)) +
+  scale_x_discrete(limits=c('CYSC', 'ACGL', 'LUBI', 'LUNA'))
+
+spjuInvPlot <- ggplot(data=barGraphStats(data=spjuMPN, variable="MPN", byFactorNames=c("species", "soil_trt")), aes(x=species, y=mean, fill=soil_trt)) +
+  geom_bar(stat='identity', position=position_dodge()) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
+  xlab('Plant Species') +
+  ylab('') +
+  theme(legend.position='none') +
+  scale_y_continuous(limits=c(0,2200)) +
+  scale_x_discrete(limits=c('SPJU', 'ACGL', 'LUBI', 'LUNA'))
+
+#3 panel figure
+pushViewport(viewport(layout=grid.layout(1,3)))
+print(gemoInvPlot, vp=viewport(layout.pos.row=1, layout.pos.col=1))
+print(cyscInvPlot, vp=viewport(layout.pos.row=1, layout.pos.col=2))
+print(spjuInvPlot, vp=viewport(layout.pos.row=1, layout.pos.col=3)) 
+
+
+
+#species responses to GEMO invasions and treatments
+ggplot(data=barGraphStats(data=gemoMPN, variable="MPN", byFactorNames=c("species", "soil_trt")), aes(x=species, y=mean, fill=soil_trt)) +
+  geom_bar(stat='identity', position=position_dodge()) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
+  xlab('Plant Species') +
+  ylab('Most Probable Number (MPN)') +
+  scale_x_discrete(limits=c('GEMO', 'ACGL', 'LUBI', 'LUNA')) +
+  theme(legend.position=c(0.9,0.9))
+
+
+
+
+
+
+
+
+
+
+###looking at number of nodules in highest soil dilution
+
+#subset out the 10^-2 dilution
 dil0 <- nods%>%
   filter(dilution==0)
 
