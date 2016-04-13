@@ -2,6 +2,9 @@ library(ggplot2)
 library(grid)
 library(tidyr)
 library(dplyr)
+# library(sjPlot) #to plot lmer effects, doesn't work for some reason
+# library(sjmisc) #to plot lmer effects, doesn't work for some reason
+library(lme4)
 
 theme_set(theme_bw())
 theme_update(axis.title.x=element_text(size=20, vjust=-0.35), axis.text.x=element_text(size=16),
@@ -74,76 +77,185 @@ nodsDilution <- nodsBinary%>%
   spread(key=dilution, value=nodulated)
 
 #use BAM Appendix 2 MPN calculator (excel workbook)
-MPN <- read.csv('La Pierre_MPN_MPN estimates_2015.csv')
+MPN <- read.csv('La Pierre_MPN_MPN estimates_2015.csv') %>%
+  mutate(ln_MPN=log(MPN+1))
 
-###TO DO
-# add stats, standardize variables to uninvaded as controls
+
+###MPN difference
+MPNinv <- MPN%>%
+  mutate(soil_trt_spp=paste(soil_trt, soil_spp, sep='_'))%>%
+  select(-MPN, -MPN_lower, -MPN_upper, -soil_spp, -soil_trt)%>%
+  #compare by trt
+  spread(key=soil_trt_spp, value=ln_MPN)%>%
+  #relativize to uninvaded
+  mutate(cysc_effect=ifelse(untreated_CYSC=='NA', 'NA', (untreated_CYSC - uninvaded_uninvaded)))%>%
+  mutate(spju_effect=ifelse(untreated_SPJU=='NA', 'NA', (untreated_SPJU - uninvaded_uninvaded)))%>%
+  mutate(gemo_effect=ifelse(untreated_GEMO=='NA', 'NA', (untreated_GEMO - uninvaded_uninvaded)))%>%
+  mutate(herb_effect=ifelse(herbicided_GEMO=='NA', 'NA', (herbicided_GEMO - uninvaded_uninvaded)))%>%
+  mutate(mow_effect=ifelse(mowed_GEMO=='NA', 'NA', (mowed_GEMO - uninvaded_uninvaded)))%>%
+  mutate(pull_effect=ifelse(pulled_GEMO=='NA', 'NA', (pulled_GEMO - uninvaded_uninvaded)))
+
+#long form
+MPNdiff <- MPNinv%>%
+  select(-untreated_CYSC, -untreated_SPJU, -untreated_GEMO, -uninvaded_uninvaded, -herbicided_GEMO, -mowed_GEMO, -pulled_GEMO)%>%
+  gather(key=soil_trt_spp, value=MPN_diff, cysc_effect:pull_effect, na.rm=T)
+
+
+###mixed effects models
+#gemo invasion
+MPNgemo <- MPNinv%>%
+  select(species, soil_site, herbicided_GEMO, mowed_GEMO, pulled_GEMO, uninvaded_uninvaded, untreated_GEMO)%>%
+  filter(species!='SPJU', species!='CYSC')%>%
+  gather(key=soil_trt_spp, value=ln_MPN, herbicided_GEMO:untreated_GEMO, na.rm=T)
+
+gemoModel <- lmer(ln_MPN ~ species*soil_trt_spp + (1 | soil_site), data=subset(MPNgemo, soil_trt_spp=='uninvaded_uninvaded'|soil_trt_spp=='untreated_GEMO'))
+summary(gemoModel)
+ranef(gemoModel)
+fixef(gemoModel)
+# sjp.lmer(gemoModel, type='fe') #doesn't work for some reason
+
+summary(gemoModelglm <- glm(ln_MPN ~ species*soil_trt_spp, data=subset(MPNgemo, soil_trt_spp=='uninvaded_uninvaded'|soil_trt_spp=='untreated_GEMO')))
+
+#cysc invasion
+MPNcysc <- MPNinv%>%
+  select(species, soil_site, uninvaded_uninvaded, untreated_CYSC)%>%
+  filter(species!='SPJU', species!='GEMO')%>%
+  gather(key=soil_trt_spp, value=ln_MPN, uninvaded_uninvaded:untreated_CYSC, na.rm=T)
+
+cyscModel <- lmer(ln_MPN ~ species*soil_trt_spp + (1 | soil_site), data=MPNcysc)
+summary(cyscModel)
+ranef(cyscModel)
+fixef(cyscModel)
+
+summary(cyscModelglm <- glm(ln_MPN ~ species*soil_trt_spp, data=MPNcysc))
+
+#spju invasion
+MPNspju <- MPNinv%>%
+  select(species, soil_site, uninvaded_uninvaded, untreated_SPJU)%>%
+  filter(species!='CYSC', species!='GEMO')%>%
+  gather(key=soil_trt_spp, value=ln_MPN, uninvaded_uninvaded:untreated_SPJU, na.rm=T)
+
+spjuModel <- lmer(ln_MPN ~ species*soil_trt_spp + (1 | soil_site), data=MPNspju)
+summary(spjuModel)
+ranef(spjuModel)
+fixef(spjuModel)
+
+summary(spjuModelglm <- glm(ln_MPN ~ species*soil_trt_spp, data=MPNspju))
+
+#gemo removal
+MPNgemo <- MPNinv%>%
+  select(species, soil_site, herbicided_GEMO, mowed_GEMO, pulled_GEMO, uninvaded_uninvaded, untreated_GEMO)%>%
+  filter(species!='SPJU', species!='CYSC')%>%
+  gather(key=soil_trt_spp, value=ln_MPN, herbicided_GEMO:untreated_GEMO, na.rm=T)
+
+gemoRemModel <- lmer(ln_MPN ~ species*soil_trt_spp + (1 | soil_site), data=MPNgemo)
+summary(gemoRemModel)
+ranef(gemoRemModel)
+fixef(gemoRemModel)
+
+summary(gemoRemModelglm <- glm(ln_MPN ~ species*soil_trt_spp, data=MPNgemo))
 
 
 ###figures of invaded vs uninvaded areas
 
-#GEMO vs uninvaded
-gemoMPN <- MPN%>%
-  filter(soil_spp=='GEMO' | soil_trt=='uninvaded')%>%
-  filter(species!='CYSC', species!='SPJU')%>%
-  mutate(soil_trt=factor(soil_trt, levels=c('uninvaded', 'untreated', 'herbicided', 'mowed', 'pulled')))
-
-#CYSC vs uninvaded
-cyscMPN <- MPN%>%
-  filter(soil_spp=='CYSC' | soil_trt=='uninvaded')%>%
-  filter(species!='GEMO', species!='SPJU') 
-
-#SPJU vs uninvaded
-spjuMPN <- MPN%>%
-  filter(soil_spp=='SPJU' | soil_trt=='uninvaded')%>%
-  filter(species!='GEMO', species!='CYSC') 
-
-gemoInvPlot <- ggplot(data=barGraphStats(data=subset(gemoMPN, soil_trt=='uninvaded' | soil_trt=='untreated'), variable="MPN", byFactorNames=c("species", "soil_trt")), aes(x=species, y=mean, fill=soil_trt)) +
+#bar graphs - nice for showing pattern of significance
+cyscEffectPlot <- ggplot(data=barGraphStats(data=MPNcysc, variable="ln_MPN", byFactorNames=c("species", "soil_trt_spp")), aes(x=species, y=mean, fill=soil_trt_spp)) +
   geom_bar(stat='identity', position=position_dodge()) +
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
-  xlab('Plant Species') +
-  ylab('Most Probable Number (MPN)') +
-  theme(legend.position=c(0.8,0.9)) +
-  scale_y_continuous(limits=c(0,2200)) +
+  xlab('') +
+  ylab('') +
+  theme(legend.position=c(0.9,0.8)) +
+  scale_y_continuous(limits=c(0,8)) +
+  scale_x_discrete(limits=c('CYSC', 'ACGL', 'LUBI', 'LUNA')) +
+  scale_fill_manual(labels=c('uninvaded', 'invaded'), values=c("#009900", "#FF9900"))
+
+gemoEffectPlot <- ggplot(data=barGraphStats(data=subset(MPNgemo, soil_trt_spp=='uninvaded_uninvaded'|soil_trt_spp=='untreated_GEMO'), variable="ln_MPN", byFactorNames=c("species", "soil_trt_spp")), aes(x=species, y=mean, fill=soil_trt_spp)) +
+  geom_bar(stat='identity', position=position_dodge()) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
+  xlab('') +
+  ylab('ln Most Probable Number (MPN)') +
+  theme(legend.position='none') +
+  scale_y_continuous(limits=c(0,8)) +
   scale_x_discrete(limits=c('GEMO', 'ACGL', 'LUBI', 'LUNA')) +
-  scale_fill_discrete(labels=c('uninvaded', 'invaded'))
+  scale_fill_manual(labels=c('uninvaded', 'invaded'), values=c("#009900", "#FF9900"))
 
-cyscInvPlot <- ggplot(data=barGraphStats(data=cyscMPN, variable="MPN", byFactorNames=c("species", "soil_trt")), aes(x=species, y=mean, fill=soil_trt)) +
+spjuEffectPlot <- ggplot(data=barGraphStats(data=MPNspju, variable="ln_MPN", byFactorNames=c("species", "soil_trt_spp")), aes(x=species, y=mean, fill=soil_trt_spp)) +
   geom_bar(stat='identity', position=position_dodge()) +
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
   xlab('Plant Species') +
   ylab('') +
   theme(legend.position='none') +
-  scale_y_continuous(limits=c(0,2200)) +
-  scale_x_discrete(limits=c('CYSC', 'ACGL', 'LUBI', 'LUNA'))
-
-spjuInvPlot <- ggplot(data=barGraphStats(data=spjuMPN, variable="MPN", byFactorNames=c("species", "soil_trt")), aes(x=species, y=mean, fill=soil_trt)) +
-  geom_bar(stat='identity', position=position_dodge()) +
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
-  xlab('Plant Species') +
-  ylab('') +
-  theme(legend.position='none') +
-  scale_y_continuous(limits=c(0,2200)) +
-  scale_x_discrete(limits=c('SPJU', 'ACGL', 'LUBI', 'LUNA'))
+  scale_y_continuous(limits=c(0,8)) +
+  scale_x_discrete(limits=c('SPJU', 'ACGL', 'LUBI', 'LUNA')) +
+  scale_fill_manual(labels=c('uninvaded', 'invaded'), values=c("#009900", "#FF9900"))
 
 #3 panel figure
-pushViewport(viewport(layout=grid.layout(1,3)))
-print(gemoInvPlot, vp=viewport(layout.pos.row=1, layout.pos.col=1))
-print(cyscInvPlot, vp=viewport(layout.pos.row=1, layout.pos.col=2))
-print(spjuInvPlot, vp=viewport(layout.pos.row=1, layout.pos.col=3)) 
+pushViewport(viewport(layout=grid.layout(3,1)))
+print(cyscEffectPlot, vp=viewport(layout.pos.row=1, layout.pos.col=1))
+print(spjuEffectPlot, vp=viewport(layout.pos.row=3, layout.pos.col=1))
+print(gemoEffectPlot, vp=viewport(layout.pos.row=2, layout.pos.col=1))
+
+
+#boxplots - nice for showing that the CYSC pattern is mainly driven by one high point at blithedale summit
+cyscEffectPlot <- ggplot(data=MPNcysc, aes(x=species, y=ln_MPN, fill=soil_trt_spp)) +
+  geom_boxplot() + 
+  xlab('') +
+  ylab('') +
+  theme(legend.position=c(0.1,0.85)) +
+  scale_y_continuous(limits=c(0,8)) +
+  scale_x_discrete(limits=c('CYSC', 'ACGL', 'LUBI', 'LUNA')) +
+  scale_fill_manual(labels=c('uninvaded', 'invaded'), values=c("#009900", "#FF9900"))
+
+gemoEffectPlot <- ggplot(data=subset(MPNgemo, soil_trt_spp=='uninvaded_uninvaded'|soil_trt_spp=='untreated_GEMO'), aes(x=species, y=ln_MPN, fill=soil_trt_spp)) +
+  geom_boxplot() +
+  xlab('') +
+  ylab('ln MPN per g soil') +
+  theme(legend.position='none') +
+  scale_y_continuous(limits=c(0,8)) +
+  scale_x_discrete(limits=c('GEMO', 'ACGL', 'LUBI', 'LUNA')) +
+  scale_fill_manual(labels=c('uninvaded', 'invaded'), values=c("#009900", "#FF9900"))
+
+spjuEffectPlot <- ggplot(data=MPNspju, aes(x=species, y=ln_MPN, fill=soil_trt_spp)) +
+  geom_boxplot() +
+  xlab('Plant Species') +
+  ylab('') +
+  theme(legend.position='none') +
+  scale_y_continuous(limits=c(0,8)) +
+  scale_x_discrete(limits=c('SPJU', 'ACGL', 'LUBI', 'LUNA')) +
+  scale_fill_manual(labels=c('uninvaded', 'invaded'), values=c("#009900", "#FF9900"))
+
+#3 panel figure
+pushViewport(viewport(layout=grid.layout(3,1)))
+print(cyscEffectPlot, vp=viewport(layout.pos.row=1, layout.pos.col=1))
+print(spjuEffectPlot, vp=viewport(layout.pos.row=3, layout.pos.col=1)) 
+print(gemoEffectPlot, vp=viewport(layout.pos.row=2, layout.pos.col=1))
 
 
 
 #species responses to GEMO invasions and treatments
-ggplot(data=barGraphStats(data=gemoMPN, variable="MPN", byFactorNames=c("species", "soil_trt")), aes(x=species, y=mean, fill=soil_trt)) +
+#get proper treatment order
+MPNgemoOrder <- MPNgemo%>%
+  mutate(order=ifelse(soil_trt_spp=='uninvaded_uninvaded', 'a', ifelse(soil_trt_spp=='untreated_GEMO', 'b', ifelse(soil_trt_spp=='pulled_GEMO', 'c', ifelse(soil_trt_spp=='herbicided_GEMO', 'd', 'e')))))
+
+#bar graph
+ggplot(data=barGraphStats(data=MPNgemoOrder, variable="ln_MPN", byFactorNames=c("species", "order")), aes(x=species, y=mean, fill=order)) +
   geom_bar(stat='identity', position=position_dodge()) +
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
   xlab('Plant Species') +
-  ylab('Most Probable Number (MPN)') +
+  ylab('ln MPN per g soil') +
   scale_x_discrete(limits=c('GEMO', 'ACGL', 'LUBI', 'LUNA')) +
-  theme(legend.position=c(0.9,0.9))
+  theme(legend.position=c(0.9,0.9), axis.title.y=element_text(margin=margin(r=10))) +
+  scale_fill_manual(labels=c('uninvaded', 'invaded', 'pulled', 'herbicide', 'mowed'), values=c('#009900', '#FF9900', '#A8A9FF', '#7A75CE', '#554C9E'))
 
-
+#boxplot
+ggplot(data=arrange(MPNgemoOrder, order), aes(x=species, y=ln_MPN, fill=order)) +
+  geom_boxplot() +
+  xlab('Plant Species') +
+  ylab('ln MPN per g soil') +
+  # theme(legend.position='none') +
+  # scale_y_continuous(limits=c(0,8)) +
+  scale_x_discrete(limits=c('GEMO', 'ACGL', 'LUBI', 'LUNA')) +
+  scale_fill_manual(labels=c('uninvaded', 'invaded', 'pulled', 'herbicide', 'mowed'), values=c('#009900', '#FF9900', '#A8A9FF', '#7A75CE', '#554C9E'))
 
 
 
