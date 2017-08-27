@@ -197,11 +197,84 @@ print(spjuEffectPlot, vp=viewport(layout.pos.row=2, layout.pos.col=3))
 
 #species responses to GEMO invasions and treatments
 #bar graph
-ggplot(data=barGraphStats(data=subset(biomass, soil_trt_spp!='NA_NA'&soil_trt_spp!='untreated_SPJU'&soil_trt_spp!='untreated_CYSC'), variable="total_mass", byFactorNames=c("species", "soil_trt_spp")), aes(x=species, y=mean, fill=soil_trt_spp)) +
+acglRemovalPlot <- ggplot(data=barGraphStats(data=subset(biomass, soil_trt_spp!='NA_NA'&soil_trt_spp!='untreated_SPJU'&soil_trt_spp!='untreated_CYSC'&species=='ACGL'), variable="total_mass", byFactorNames=c("species", "soil_trt_spp")), aes(x=soil_trt_spp, y=mean, fill=soil_trt_spp)) +
   geom_bar(stat='identity', position=position_dodge()) +
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
-  xlab('Plant Species') +
   ylab('Total Biomass (g)') +
-  scale_x_discrete(limits=c('ACGL', 'LUNA', 'CYSC', 'GEMO', 'SPJU')) +
-  theme(legend.position=c(0.9,0.9), axis.title.y=element_text(margin=margin(r=10))) +
-  scale_fill_manual(labels=c('uninvaded', 'invaded', 'invaded', 'invaded'), values=c("#009900", "#FF9900", "#FF9900", "#FF9900")) 
+  scale_x_discrete(limits=c('uninvaded_uninvaded', 'untreated_GEMO', 'pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO'), labels=c('uninv.', 'untrt.', 'pulled', 'herbic.', 'mowed')) +
+  theme(legend.position='none', axis.title.y=element_text(margin=margin(r=10)), axis.title.x=element_blank(),
+        axis.text.x  = element_text(angle=90, vjust=0.5))  +
+  scale_fill_manual(values=c('#7A75CE', '#554C9E', '#A8A9FF', '#009900', '#FF9900')) +
+  # annotate('text', x=1, y=0.165, label='a', size=12) +
+  # annotate('text', x=2, y=0.195, label='b', size=12) +
+  # annotate('text', x=3, y=0.194, label='b', size=12) +
+  # annotate('text', x=4, y=0.21, label='b', size=12) +
+  annotate('text', x=0.5, y=0.04, label='(a) ACGL', size=12, hjust='left')
+
+lunaRemovalPlot <- ggplot(data=barGraphStats(data=subset(biomass, soil_trt_spp!='NA_NA'&soil_trt_spp!='untreated_SPJU'&soil_trt_spp!='untreated_CYSC'&species=='LUNA'), variable="total_mass", byFactorNames=c("species", "soil_trt_spp")), aes(x=soil_trt_spp, y=mean, fill=soil_trt_spp)) +
+  geom_bar(stat='identity', position=position_dodge()) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
+  ylab('Total Biomass (g)') +
+  scale_x_discrete(limits=c('uninvaded_uninvaded', 'untreated_GEMO', 'pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO'), labels=c('uninv.', 'untrt.', 'pulled', 'herbic.', 'mowed')) +
+  theme(legend.position='none', axis.title.y=element_text(margin=margin(r=10)), axis.title.x=element_blank(),
+        axis.text.x  = element_text(angle=90, vjust=0.5))  +
+  scale_fill_manual(values=c('#7A75CE', '#554C9E', '#A8A9FF', '#009900', '#FF9900')) +
+  annotate('text', x=1, y=0.57, label='a', size=12) +
+  annotate('text', x=2, y=0.68, label='ab', size=12) +
+  annotate('text', x=3, y=0.36, label='c', size=12) +
+  annotate('text', x=4, y=0.8, label='ab', size=12) +
+  annotate('text', x=5, y=0.95, label='b', size=12) +
+  annotate('text', x=0.5, y=0.95, label='(b) LUNA', size=12, hjust='left')
+
+cyscRemovalPlot <- ggplot(data=barGraphStats(data=subset(biomass, soil_trt_spp!='NA_NA'&soil_trt_spp!='untreated_SPJU'&soil_trt_spp!='untreated_CYSC'&species=='CYSC'), variable="total_mass", byFactorNames=c("species", "soil_trt_spp")), aes(x=soil_trt_spp, y=mean, fill=soil_trt_spp)) +
+  geom_bar(stat='identity', position=position_dodge()) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
+  ylab('Total Biomass (g)') +
+  scale_x_discrete(limits=c('uninvaded_uninvaded', 'untreated_GEMO', 'pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO'), labels=c('uninv.', 'untrt.', 'pulled', 'herbic.', 'mowed')) +
+  theme(legend.position='none', axis.title.y=element_text(margin=margin(r=10)), axis.title.x=element_blank(),
+        axis.text.x  = element_text(angle=90, vjust=0.5))  +
+  scale_fill_manual(values=c('#7A75CE', '#554C9E', '#A8A9FF', '#009900', '#FF9900')) +
+  annotate('text', x=1, y=0.11, label='a', size=12) +
+  annotate('text', x=2, y=0.14, label='ab', size=12) +
+  annotate('text', x=3, y=0.095, label='a', size=12) +
+  annotate('text', x=4, y=0.16, label='b', size=12) +
+  annotate('text', x=5, y=0.15, label='b', size=12) +
+  annotate('text', x=0.5, y=0.16, label='(c) CYSC', size=12, hjust='left')
+
+gemoRemovalPlot <- ggplot(data=barGraphStats(data=subset(biomass, soil_trt_spp!='NA_NA'&soil_trt_spp!='untreated_SPJU'&soil_trt_spp!='untreated_CYSC'&species=='GEMO'), variable="total_mass", byFactorNames=c("species", "soil_trt_spp")), aes(x=soil_trt_spp, y=mean, fill=soil_trt_spp)) +
+  geom_bar(stat='identity', position=position_dodge()) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
+  ylab('Total Biomass (g)') +
+  scale_x_discrete(limits=c('uninvaded_uninvaded', 'untreated_GEMO', 'pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO'), labels=c('uninv.', 'untrt.', 'pulled', 'herbic.', 'mowed')) +
+  theme(legend.position='none', axis.title.y=element_text(margin=margin(r=10)), axis.title.x=element_blank(),
+        axis.text.x  = element_text(angle=90, vjust=0.5))  +
+  scale_fill_manual(values=c('#7A75CE', '#554C9E', '#A8A9FF', '#009900', '#FF9900')) +
+  annotate('text', x=1, y=0.085, label='a', size=12) +
+  annotate('text', x=2, y=0.135, label='b', size=12) +
+  annotate('text', x=3, y=0.085, label='a', size=12) +
+  annotate('text', x=4, y=0.123, label='b', size=12) +
+  annotate('text', x=5, y=0.123, label='b', size=12) +
+  annotate('text', x=0.5, y=0.14, label='(d) GEMO', size=12, hjust='left')
+
+spjuRemovalPlot <- ggplot(data=barGraphStats(data=subset(biomass, soil_trt_spp!='NA_NA'&soil_trt_spp!='untreated_SPJU'&soil_trt_spp!='untreated_CYSC'&species=='SPJU'), variable="total_mass", byFactorNames=c("species", "soil_trt_spp")), aes(x=soil_trt_spp, y=mean, fill=soil_trt_spp)) +
+  geom_bar(stat='identity', position=position_dodge()) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
+  ylab('Total Biomass (g)') +
+  scale_x_discrete(limits=c('uninvaded_uninvaded', 'untreated_GEMO', 'pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO'), labels=c('uninv.', 'untrt.', 'pulled', 'herbic.', 'mowed')) +
+  theme(legend.position='none', axis.title.y=element_text(margin=margin(r=10)), axis.title.x=element_blank(),
+        axis.text.x  = element_text(angle=90, vjust=0.5))  +
+  scale_fill_manual(values=c('#7A75CE', '#554C9E', '#A8A9FF', '#009900', '#FF9900')) +
+  # annotate('text', x=1, y=0.165, label='a', size=12) +
+  # annotate('text', x=2, y=0.195, label='b', size=12) +
+  # annotate('text', x=3, y=0.194, label='b', size=12) +
+  # annotate('text', x=4, y=0.21, label='b', size=12) +
+  annotate('text', x=0.5, y=0.23, label='(e) SPJU', size=12, hjust='left')
+
+#5 panel figure
+pushViewport(viewport(layout=grid.layout(2,3)))
+print(acglRemovalPlot, vp=viewport(layout.pos.row=1, layout.pos.col=1))
+print(lunaRemovalPlot, vp=viewport(layout.pos.row=1, layout.pos.col=2))
+print(cyscRemovalPlot, vp=viewport(layout.pos.row=2, layout.pos.col=1))
+print(gemoRemovalPlot, vp=viewport(layout.pos.row=2, layout.pos.col=2))
+print(spjuRemovalPlot, vp=viewport(layout.pos.row=2, layout.pos.col=3))
+#export at 1500x2000
