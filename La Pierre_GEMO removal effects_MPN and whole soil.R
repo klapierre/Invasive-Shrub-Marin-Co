@@ -1,8 +1,6 @@
 library(ggplot2)
 library(grid)
 library(tidyverse)
-library(lme4)
-library(lsmeans)
 
 theme_set(theme_bw())
 theme_update(axis.title.x=element_text(size=20, vjust=-0.35), axis.text.x=element_text(size=16),
@@ -109,21 +107,10 @@ MPNgemo <- MPNinv%>%
   filter(untreated_GEMO!='NA')%>%
   gather(key=soil_trt_spp, value=ln_MPN, uninvaded_uninvaded:untreated_GEMO, na.rm=T)
 
-acglMPNModel <- lmer(ln_MPN ~ soil_trt_spp + (1 | soil_site), data=subset(MPNgemo, species=='ACGL'))
-summary(acglMPNModel)
-lsmeans(acglMPNModel, pairwise~soil_trt_spp)
-
-lubiMPNModel <- lmer(ln_MPN ~ soil_trt_spp + (1 | soil_site), data=subset(MPNgemo, species=='LUBI'))
-summary(lubiMPNModel)
-lsmeans(lubiMPNModel, pairwise~soil_trt_spp)
-
-lunaMPNModel <- lmer(ln_MPN ~ soil_trt_spp + (1 | soil_site), data=subset(MPNgemo, species=='LUNA'))
-summary(lunaMPNModel)
-lsmeans(lunaMPNModel, pairwise~soil_trt_spp)
-
-gemoMPNModel <- lmer(ln_MPN ~ soil_trt_spp + (1 | soil_site), data=subset(MPNgemo, species=='GEMO'))
-summary(gemoMPNModel)
-lsmeans(gemoMPNModel, pairwise~soil_trt_spp)
+summary(acglMPNModel <- aov(ln_MPN ~ soil_trt_spp, data=subset(MPNgemo, species=='ACGL')))
+summary(lubiMPNModel <- aov(ln_MPN ~ soil_trt_spp, data=subset(MPNgemo, species=='LUBI')))
+summary(lunaMPNModel <- aov(ln_MPN ~ soil_trt_spp, data=subset(MPNgemo, species=='LUNA')))
+summary(gemoMPNModel <- aov(ln_MPN ~ soil_trt_spp, data=subset(MPNgemo, species=='GEMO')))
 
 #bar graph
 acglRemovalPlot <- ggplot(data=barGraphStats(data=subset(MPNgemo, species=='ACGL'), variable="ln_MPN", byFactorNames=c("species", "soil_trt_spp")), aes(x=soil_trt_spp, y=mean, fill=soil_trt_spp)) +
@@ -144,8 +131,8 @@ lubiRemovalPlot <- ggplot(data=barGraphStats(data=subset(MPNgemo, species=='LUBI
   scale_x_discrete(limits=c('uninvaded_uninvaded', 'untreated_GEMO'), labels=c('uninv.', 'untrt.')) +
   theme(legend.position='none', axis.title.y=element_text(margin=margin(r=10)), axis.title.x=element_blank())  +
   scale_fill_manual(values=c('#808080', '#808080')) +
-  annotate('text', x=1, y=0.15, label='a', size=8) +
-  annotate('text', x=2, y=3.2, label='b', size=8) +
+  # annotate('text', x=1, y=0.15, label='a', size=8) +
+  # annotate('text', x=2, y=3.2, label='b', size=8) +
   annotate('text', x=0.5, y=3.2, label='(b) LUBI', size=8, hjust='left')
 
 lunaRemovalPlot <- ggplot(data=barGraphStats(data=subset(MPNgemo, species=='LUNA'), variable="ln_MPN", byFactorNames=c("species", "soil_trt_spp")), aes(x=soil_trt_spp, y=mean, fill=soil_trt_spp)) +
@@ -191,9 +178,7 @@ MPNgemoRem <- MPNinv%>%
   left_join(MPNuntreated)%>%
   mutate(proportion_MPN=((ln_MPN+0.1)-(untreated_GEMO+0.1))/(untreated_GEMO+0.1))
 
-acglMPNRemModel <- lmer(proportion_MPN ~ soil_trt_spp + (1 | soil_site), data=subset(MPNgemoRem, species=='ACGL'))
-summary(acglMPNRemModel)
-lsmeans(acglMPNRemModel, pairwise~soil_trt_spp)
+summary(aov(proportion_MPN ~ soil_trt_spp, data=subset(MPNgemoRem, species=='ACGL')))
 #t-tests to identify differences from 1.0 (no proportional difference from untreated GEMO invaded areas)
 test <- subset(MPNgemoRem, soil_trt_spp=='pulled_GEMO'&species=='ACGL')
 t.test(test$proportion_MPN, mu=1)
@@ -202,9 +187,7 @@ t.test(test$proportion_MPN, mu=1)
 test <- subset(MPNgemoRem, soil_trt_spp=='mowed_GEMO'&species=='ACGL')
 t.test(test$proportion_MPN, mu=1)
 
-lubiMPNRemModel <- lmer(proportion_MPN ~ soil_trt_spp + (1 | soil_site), data=subset(MPNgemoRem, species=='LUBI'))
-summary(lubiMPNRemModel)
-lsmeans(lubiMPNRemModel, pairwise~soil_trt_spp)
+summary(aov(proportion_MPN ~ soil_trt_spp, data=subset(MPNgemoRem, species=='LUBI')))
 #t-tests to identify differences from 1.0 (no proportional difference from untreated GEMO invaded areas)
 test <- subset(MPNgemoRem, soil_trt_spp=='pulled_GEMO'&species=='LUBI')
 t.test(test$proportion_MPN, mu=1)
@@ -213,9 +196,7 @@ t.test(test$proportion_MPN, mu=1)
 test <- subset(MPNgemoRem, soil_trt_spp=='mowed_GEMO'&species=='LUBI')
 t.test(test$proportion_MPN, mu=1)
 
-lunaMPNRemModel <- lmer(proportion_MPN ~ soil_trt_spp + (1 | soil_site), data=subset(MPNgemoRem, species=='LUNA'))
-summary(lunaMPNRemModel)
-lsmeans(lunaMPNRemModel, pairwise~soil_trt_spp)
+summary(aov(proportion_MPN ~ soil_trt_spp, data=subset(MPNgemoRem, species=='LUNA')))
 #t-tests to identify differences from 1.0 (no proportional difference from untreated GEMO invaded areas)
 test <- subset(MPNgemoRem, soil_trt_spp=='pulled_GEMO'&species=='LUNA')
 t.test(test$proportion_MPN, mu=1)
@@ -224,9 +205,7 @@ t.test(test$proportion_MPN, mu=1)
 test <- subset(MPNgemoRem, soil_trt_spp=='mowed_GEMO'&species=='LUNA')
 t.test(test$proportion_MPN, mu=1)
 
-gemoMPNRemModel <- lmer(proportion_MPN ~ soil_trt_spp + (1 | soil_site), data=subset(MPNgemoRem, species=='GEMO'))
-summary(gemoMPNRemModel)
-lsmeans(gemoMPNRemModel, pairwise~soil_trt_spp)
+summary(aov(proportion_MPN ~ soil_trt_spp, data=subset(MPNgemoRem, species=='GEMO')))
 #t-tests to identify differences from 1.0 (no proportional difference from untreated GEMO invaded areas)
 test <- subset(MPNgemoRem, soil_trt_spp=='pulled_GEMO'&species=='GEMO')
 t.test(test$proportion_MPN, mu=1)
@@ -234,6 +213,7 @@ test <- subset(MPNgemoRem, soil_trt_spp=='herbicided_GEMO'&species=='GEMO')
 t.test(test$proportion_MPN, mu=1)
 test <- subset(MPNgemoRem, soil_trt_spp=='mowed_GEMO'&species=='GEMO')
 t.test(test$proportion_MPN, mu=1)
+
 
 #bar graph
 acglRemovalPlot <- ggplot(data=barGraphStats(data=subset(MPNgemoRem, species=='ACGL'), variable="proportion_MPN", byFactorNames=c("soil_trt_spp")), aes(x=soil_trt_spp, y=mean)) +
@@ -263,9 +243,9 @@ lunaRemovalPlot <- ggplot(data=barGraphStats(data=subset(MPNgemoRem, species=='L
   scale_x_discrete(limits=c('pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO'), labels=c('pulled', 'herbic.', 'mowed')) +
   theme(legend.position='none', axis.title.y=element_text(margin=margin(r=10)), axis.title.x=element_blank()) +
   geom_abline(intercept=1, slope=0, linetype=2) +
-  annotate('text', x=1, y=-1.1, label='a*', size=8) +
-  annotate('text', x=2, y=-0.75, label='ab*', size=8) +
-  annotate('text', x=3, y=0.4, label='b*', size=8) +
+  annotate('text', x=1, y=-1.1, label='*', size=8) +
+  annotate('text', x=2, y=-0.75, label='*', size=8) +
+  annotate('text', x=3, y=0.4, label='*', size=8) +
   annotate('text', x=0.5, y=1.5, label='(c) LUNA', size=8, hjust='left')
 
 gemoRemovalPlot <-  ggplot(data=barGraphStats(data=subset(MPNgemoRem, species=='GEMO'), variable="proportion_MPN", byFactorNames=c("soil_trt_spp")), aes(x=soil_trt_spp, y=mean)) +
@@ -275,9 +255,9 @@ gemoRemovalPlot <-  ggplot(data=barGraphStats(data=subset(MPNgemoRem, species=='
   scale_x_discrete(limits=c('pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO'), labels=c('pulled', 'herbic.', 'mowed')) +
   theme(legend.position='none', axis.title.y=element_text(margin=margin(r=10)), axis.title.x=element_blank()) +
   geom_abline(intercept=1, slope=0, linetype=2) +
-  annotate('text', x=1, y=-1.1, label='a*', size=8) +
-  annotate('text', x=2, y=-0.75, label='ab*', size=8) +
-  annotate('text', x=3, y=0.4, label='b*', size=8) +
+  annotate('text', x=1, y=-1.1, label='*', size=8) +
+  annotate('text', x=2, y=-0.75, label='*', size=8) +
+  annotate('text', x=3, y=0.4, label='*', size=8) +
   annotate('text', x=0.5, y=1.5, label='(d) GEMO', size=8, hjust='left')
 
 #4 panel figure
@@ -318,17 +298,9 @@ biomass <- read.csv('La Pierre_MC_whole soil_biomass_2017.csv')%>%
 
 ###compare uninvaded vs invaded
 #gemo removal
-acglRemModel <- lmer(total_mass ~ soil_trt_spp + (1 | soil_site), data=subset(biomass, soil_trt_spp %in% c('untreated_GEMO', 'uninvaded_uninvaded')&species=='ACGL'&!(soil_site %in% c('boyd memorial', 'deer park', 'horse hill', 'larkspur ferry', 'loma alta', 'phoenix lake'))))
-summary(acglRemModel)
-lsmeans(acglRemModel, pairwise~soil_trt_spp)
-
-lunaRemModel <- lmer(total_mass ~ soil_trt_spp + (1 | soil_site), data=subset(biomass, soil_trt_spp %in% c('untreated_GEMO', 'uninvaded_uninvaded')&species=='LUNA'&!(soil_site %in% c('boyd memorial', 'deer park', 'horse hill', 'larkspur ferry', 'loma alta', 'phoenix lake'))))
-summary(lunaRemModel)
-lsmeans(lunaRemModel, pairwise~soil_trt_spp)
-
-gemoRemModel <- lmer(total_mass ~ soil_trt_spp + (1 | soil_site), data=subset(biomass, soil_trt_spp %in% c('untreated_GEMO', 'uninvaded_uninvaded')&species=='GEMO'&!(soil_site %in% c('boyd memorial', 'deer park', 'horse hill', 'larkspur ferry', 'loma alta', 'phoenix lake'))))
-summary(gemoRemModel)
-lsmeans(gemoRemModel, pairwise~soil_trt_spp)
+summary(acglRemModel <- aov(total_mass ~ soil_trt_spp, data=subset(biomass, soil_trt_spp %in% c('untreated_GEMO', 'uninvaded_uninvaded')&species=='ACGL'&!(soil_site %in% c('boyd memorial', 'deer park', 'horse hill', 'larkspur ferry', 'loma alta', 'phoenix lake')))))
+summary(lunaRemModel <- aov(total_mass ~ soil_trt_spp, data=subset(biomass, soil_trt_spp %in% c('untreated_GEMO', 'uninvaded_uninvaded')&species=='LUNA'&!(soil_site %in% c('boyd memorial', 'deer park', 'horse hill', 'larkspur ferry', 'loma alta', 'phoenix lake')))))
+summary(gemoRemModel <- aov(total_mass ~ soil_trt_spp, data=subset(biomass, soil_trt_spp %in% c('untreated_GEMO', 'uninvaded_uninvaded')&species=='GEMO'&!(soil_site %in% c('boyd memorial', 'deer park', 'horse hill', 'larkspur ferry', 'loma alta', 'phoenix lake')))))
 
 #species responses to GEMO invasions and treatments
 #bar graph
@@ -387,9 +359,7 @@ proportionDifference <- biomass%>%
   mutate(total_diff=(total_mass-total_mass_uninv)/total_mass_uninv, root_diff=(root-root_uninv)/root_uninv, shoot_diff=(shoot-shoot_uninv)/shoot_uninv)
 
 #gemo removal
-acglRemModel <- lmer(total_diff ~ soil_trt_spp + (1 | soil_site), data=subset(proportionDifference, soil_trt_spp %in% c('pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO')&species=='ACGL'))
-summary(acglRemModel)
-lsmeans(acglRemModel, pairwise~soil_trt_spp)
+summary(acglRemModel <- aov(total_diff ~ soil_trt_spp, data=subset(proportionDifference, soil_trt_spp %in% c('pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO')&species=='ACGL')))
 #t-tests to identify differences from 1.0 (no proportional difference from untreated GEMO invaded areas)
 test <- subset(proportionDifference, soil_trt_spp=='pulled_GEMO'&species=='ACGL')
 t.test(test$total_diff, mu=1)
@@ -398,9 +368,7 @@ t.test(test$total_diff, mu=1)
 test <- subset(proportionDifference, soil_trt_spp=='mowed_GEMO'&species=='ACGL')
 t.test(test$total_diff, mu=1)
 
-lunaRemModel <- lmer(total_diff ~ soil_trt_spp + (1 | soil_site), data=subset(proportionDifference, soil_trt_spp %in% c('pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO')&species=='LUNA'))
-summary(lunaRemModel)
-lsmeans(lunaRemModel, pairwise~soil_trt_spp)
+summary(lunaRemModel <- aov(total_diff ~ soil_trt_spp, data=subset(proportionDifference, soil_trt_spp %in% c('pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO')&species=='LUNA')))
 #t-tests to identify differences from 1.0 (no proportional difference from untreated GEMO invaded areas)
 test <- subset(proportionDifference, soil_trt_spp=='pulled_GEMO'&species=='LUNA')
 t.test(test$total_diff, mu=1)
@@ -409,37 +377,13 @@ t.test(test$total_diff, mu=1)
 test <- subset(proportionDifference, soil_trt_spp=='mowed_GEMO'&species=='LUNA')
 t.test(test$total_diff, mu=1)
 
-cyscRemModel <- lmer(total_diff ~ soil_trt_spp + (1 | soil_site), data=subset(proportionDifference, soil_trt_spp %in% c('pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO')&species=='CYSC'))
-summary(cyscRemModel)
-lsmeans(cyscRemModel, pairwise~soil_trt_spp)
-#t-tests to identify differences from 1.0 (no proportional difference from untreated GEMO invaded areas)
-test <- subset(proportionDifference, soil_trt_spp=='pulled_GEMO'&species=='CYSC')
-t.test(test$total_diff, mu=1)
-test <- subset(proportionDifference, soil_trt_spp=='herbicided_GEMO'&species=='CYSC')
-t.test(test$total_diff, mu=1)
-test <- subset(proportionDifference, soil_trt_spp=='mowed_GEMO'&species=='CYSC')
-t.test(test$total_diff, mu=1)
-
-gemoRemModel <- lmer(total_diff ~ soil_trt_spp + (1 | soil_site), data=subset(proportionDifference, soil_trt_spp %in% c('pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO')&species=='GEMO'))
-summary(gemoRemModel)
-lsmeans(gemoRemModel, pairwise~soil_trt_spp)
+summary(gemoRemModel <- aov(total_diff ~ soil_trt_spp, data=subset(proportionDifference, soil_trt_spp %in% c('pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO')&species=='GEMO')))
 #t-tests to identify differences from 1.0 (no proportional difference from untreated GEMO invaded areas)
 test <- subset(proportionDifference, soil_trt_spp=='pulled_GEMO'&species=='GEMO')
 t.test(test$total_diff, mu=1)
 test <- subset(proportionDifference, soil_trt_spp=='herbicided_GEMO'&species=='GEMO')
 t.test(test$total_diff, mu=1)
 test <- subset(proportionDifference, soil_trt_spp=='mowed_GEMO'&species=='GEMO')
-t.test(test$total_diff, mu=1)
-
-spjuRemModel <- lmer(total_diff ~ soil_trt_spp + (1 | soil_site), data=subset(proportionDifference, soil_trt_spp %in% c('pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO')&species=='SPJU'))
-summary(spjuRemModel)
-lsmeans(spjuRemModel, pairwise~soil_trt_spp)
-#t-tests to identify differences from 1.0 (no proportional difference from untreated GEMO invaded areas)
-test <- subset(proportionDifference, soil_trt_spp=='pulled_GEMO'&species=='SPJU')
-t.test(test$total_diff, mu=1)
-test <- subset(proportionDifference, soil_trt_spp=='herbicided_GEMO'&species=='SPJU')
-t.test(test$total_diff, mu=1)
-test <- subset(proportionDifference, soil_trt_spp=='mowed_GEMO'&species=='SPJU')
 t.test(test$total_diff, mu=1)
 
 #species responses to GEMO invasions and treatments
@@ -463,9 +407,9 @@ lunaRemovalPlot <- ggplot(data=barGraphStats(data=subset(proportionDifference, s
   theme(legend.position='none', axis.title.y=element_text(margin=margin(r=10)), axis.title.x=element_blank())  +
   scale_fill_manual(values=c('#808080', '#808080', '#808080')) +
   geom_abline(intercept=1, slope=0, linetype=2) +
-  annotate('text', x=1, y=1.4, label='a', size=8) +
-  annotate('text', x=2, y=4.2, label='b', size=8) +
-  annotate('text', x=3, y=2.7, label='b', size=8) +
+  # annotate('text', x=1, y=1.4, label='a', size=8) +
+  # annotate('text', x=2, y=4.2, label='b', size=8) +
+  # annotate('text', x=3, y=2.7, label='b', size=8) +
   annotate('text', x=0.5, y=4.2, label='(b) LUNA', size=8, hjust='left')
 
 gemoRemovalPlot <- ggplot(data=barGraphStats(data=subset(proportionDifference, soil_trt_spp %in% c('pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO')&species=='GEMO'), variable="total_diff", byFactorNames=c("species", "soil_trt_spp")), aes(x=soil_trt_spp, y=mean, fill=soil_trt_spp)) +
