@@ -1,7 +1,5 @@
-library(ggplot2)
 library(grid)
-library(tidyr)
-library(dplyr)
+library(tidyverse)
 # library(sjPlot) #to plot lmer effects, doesn't work for some reason
 # library(sjmisc) #to plot lmer effects, doesn't work for some reason
 library(lme4)
@@ -38,7 +36,7 @@ barGraphStats <- function(data, variable, byFactorNames) {
 ###########################################################################
 
 
-setwd('C:\\Users\\Kim\\Dropbox\\2015_MarinParks_LaPierre\\marin parks data')
+setwd('C:\\Users\\lapie\\Dropbox (Smithsonian)\\Marin County Invasion\\marin parks data')
 
 trt <- read.csv('La Pierre_MPN_treatments_2015.csv')
 pots <- read.csv('La Pierre_MPN_pots_2015.csv')
@@ -353,5 +351,21 @@ ggplot(data=barGraphStats(data=gemoDil0, variable="total_nods", byFactorNames=c(
   xlab('Plant Species') +
   ylab('Total Nodules') +
   scale_x_discrete(limits=c('GEMO', 'ACGL', 'LUBI', 'LUNA')) +
-  theme(legend.position=c(0.9,0.9))
+  theme(legend.position=c(0.9,0.9)) 
 
+
+
+
+#boxplot across species for ESA
+ggplot(data=arrange(MPNgemoOrder, order), aes(x=order, y=ln_MPN, fill=order)) +
+  geom_boxplot() +
+  xlab('Restoration Treatment') +
+  ylab('ln MPN per g soil') +
+  # theme(legend.position='none') +
+  # scale_y_continuous(limits=c(0,8)) +
+  scale_x_discrete(labels=c('uninv.', 'inv.', 'pulled', 'herb.', 'mowed')) +
+  scale_fill_manual(labels=c('uninvaded', 'invaded', 'pulled', 'herbicide', 'mowed'), values=c('#009900', '#FF9900', '#A8A9FF', '#7A75CE', '#554C9E')) +
+  theme(axis.title.x=element_text(size=40, vjust=-0.35, margin=margin(t=15)), axis.text.x=element_text(size=30),
+        axis.title.y=element_text(size=40, angle=90, vjust=0.5, margin=margin(r=15)), axis.text.y=element_text(size=30),
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
+        legend.title=element_blank(), legend.text=element_text(size=30))

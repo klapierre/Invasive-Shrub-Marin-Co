@@ -1,4 +1,3 @@
-library(ggplot2)
 library(grid)
 library(tidyverse)
 library(lme4)
@@ -539,3 +538,21 @@ print(cyscRemovalPlot, vp=viewport(layout.pos.row=2, layout.pos.col=1))
 print(gemoRemovalPlot, vp=viewport(layout.pos.row=2, layout.pos.col=2))
 print(spjuRemovalPlot, vp=viewport(layout.pos.row=2, layout.pos.col=3))
 #export at 1500x2000
+
+
+
+
+#figure of all spp biomass with removal for ESA
+biomassOrder <- biomass%>%
+  mutate(order=ifelse(soil_trt_spp=='uninvaded_uninvaded', 'a', ifelse(soil_trt_spp=='untreated_GEMO', 'b', ifelse(soil_trt_spp=='pulled_GEMO', 'c', ifelse(soil_trt_spp=='herbicided_GEMO', 'd', 'e')))))
+
+ggplot(data=barGraphStats(data=subset(biomassOrder, soil_spp %in% c('uninvaded', 'GEMO') & soil_trt %in% c('untreated', 'pulled', 'mowed', 'herbicided') & species %in% c('GEMO', 'ACGL', 'LUNA')), variable="total_mass", byFactorNames=c("species", "order")), aes(x=species, y=mean, fill=order)) +
+  geom_bar(stat='identity', position=position_dodge()) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
+  ylab('Total Biomass (g)') +
+  scale_x_discrete(limits=c('ACGL', 'LUNA', 'GEMO')) +
+  scale_fill_manual(labels=c('untreated', 'pulled', 'herbicided', 'mowed'), values=c('#FF9900', '#A8A9FF', '#7A75CE', '#554C9E')) +
+  theme(legend.position='none',
+        axis.title.x=element_blank(), axis.text.x=element_text(size=30),
+        axis.title.y=element_text(size=40, angle=90, vjust=0.5, margin=margin(r=15)), axis.text.y=element_text(size=30),
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank())

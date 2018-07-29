@@ -1,9 +1,8 @@
-library(ggplot2)
 library(ellipse)
 library(grid)
 library(tidyverse)
 
-setwd('C:\\Users\\la pierrek\\Dropbox (Smithsonian)\\Marin County Invasion\\marin parks data\\DNA sequences\\REP PCR results\\invaded comparison')
+setwd('C:\\Users\\lapie\\Dropbox (Smithsonian)\\Marin County Invasion\\marin parks data\\DNA sequences\\REP PCR\\REP PCR results\\invaded comparison')
 
 theme_set(theme_bw())
 theme_update(axis.title.x=element_text(size=20, vjust=-0.35, margin=margin(t=15)), axis.text.x=element_text(size=16),
@@ -91,6 +90,42 @@ print(LUNAinvaded, vp=viewport(layout.pos.row=1, layout.pos.col=2))
 print(GEMOinvaded, vp=viewport(layout.pos.row=1, layout.pos.col=3))
 #export at 2000x600
 
+
+
+
+###for ESA poster
+#MDS - all points for invaded vs uninvaded and then removal treatments
+invaded <- ggplot(data=subset(MDScoordinates, subset=(soil_spp %in% c('uninvaded', 'GEMO') & soil_trt %in% c('uninvaded', 'untreated'))), (aes(x=MDS1, y=MDS2, color=soil_trt, shape=soil_trt))) +
+  geom_point(size=3) +
+  stat_ellipse() +
+  scale_color_manual(values=c('#009900', '#FF9900')) +
+  annotate('text', x=-0.8, y=0.9, label='(a) invaded', size=12, hjust='left') +
+  theme(legend.position=c(0.85, 0.93),
+        axis.title.x=element_text(size=40, vjust=-0.35, margin=margin(t=15)), axis.text.x=element_text(size=30),
+        axis.title.y=element_text(size=40, angle=90, vjust=0.5, margin=margin(r=15)), axis.text.y=element_text(size=30),
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
+        legend.title=element_blank(), legend.text=element_text(size=30))
+
+
+restored <- ggplot(data=subset(MDScoordinates, subset=(soil_spp %in% c('uninvaded', 'GEMO') & soil_trt %in% c('untreated', 'herbicided', 'mowed', 'pulled'))), 
+                   (aes(x=MDS1, y=MDS2, color=soil_trt, shape=soil_trt))) +
+  geom_point(size=3) +
+  stat_ellipse() +
+  scale_color_manual(values=c('#FF9900', '#A8A9FF', '#7A75CE', '#554C9E')) +
+  ylab('') +
+  annotate('text', x=-0.8, y=0.9, label='(b) restored', size=12, hjust='left') +
+  theme(legend.position=c(0.85, 0.90),
+        axis.title.x=element_text(size=40, vjust=-0.35, margin=margin(t=15)), axis.text.x=element_text(size=30),
+        axis.title.y=element_text(size=40, angle=90, vjust=0.5, margin=margin(r=15)), axis.text.y=element_text(size=30),
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
+        legend.title=element_blank(), legend.text=element_text(size=30))
+
+
+#2 panel figure
+pushViewport(viewport(layout=grid.layout(1,2)))
+print(invaded, vp=viewport(layout.pos.row=1, layout.pos.col=1))
+print(restored, vp=viewport(layout.pos.row=1, layout.pos.col=2))
+#export at 2000x100
 
 
 
