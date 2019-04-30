@@ -1,4 +1,5 @@
 library(grid)
+library(nlme)
 library(tidyverse)
 
 theme_set(theme_bw())
@@ -106,10 +107,10 @@ MPNgemo <- MPNinv%>%
   filter(untreated_GEMO!='NA')%>%
   gather(key=soil_trt_spp, value=ln_MPN, uninvaded_uninvaded:untreated_GEMO, na.rm=T)
 
-summary(acglMPNModel <- aov(ln_MPN ~ soil_trt_spp, data=subset(MPNgemo, species=='ACGL')))
-summary(lubiMPNModel <- aov(ln_MPN ~ soil_trt_spp, data=subset(MPNgemo, species=='LUBI')))
-summary(lunaMPNModel <- aov(ln_MPN ~ soil_trt_spp, data=subset(MPNgemo, species=='LUNA')))
-summary(gemoMPNModel <- aov(ln_MPN ~ soil_trt_spp, data=subset(MPNgemo, species=='GEMO')))
+summary(acglMPNModel <- lme(ln_MPN ~ soil_trt_spp, random=~1|soil_site, data=subset(MPNgemo, species=='ACGL')))
+summary(lubiMPNModel <- lme(ln_MPN ~ soil_trt_spp, random=~1|soil_site, data=subset(MPNgemo, species=='LUBI')))
+summary(lunaMPNModel <- lme(ln_MPN ~ soil_trt_spp, random=~1|soil_site, data=subset(MPNgemo, species=='LUNA')))
+summary(gemoMPNModel <- lme(ln_MPN ~ soil_trt_spp, random=~1|soil_site, data=subset(MPNgemo, species=='GEMO')))
 
 #bar graph
 acglRemovalPlot <- ggplot(data=barGraphStats(data=subset(MPNgemo, species=='ACGL'), variable="ln_MPN", byFactorNames=c("species", "soil_trt_spp")), aes(x=soil_trt_spp, y=mean, fill=soil_trt_spp)) +
@@ -171,14 +172,19 @@ MPNuntreated <- MPNinv%>%
   select(species, soil_site, untreated_GEMO)%>%
   filter(untreated_GEMO!='NA')
 
+MPNuninvaded <- MPNinv%>%
+  select(species, soil_site, uninvaded_uninvaded)%>%
+  filter(uninvaded_uninvaded!='NA')
+
 MPNgemoRem <- MPNinv%>%
   select(species, soil_site, herbicided_GEMO, mowed_GEMO, pulled_GEMO)%>%
   gather(key=soil_trt_spp, value=ln_MPN, herbicided_GEMO:pulled_GEMO, na.rm=T)%>%
-  left_join(MPNuntreated)%>%
-  mutate(proportion_MPN=((ln_MPN+0.1)-(untreated_GEMO+0.1))/(untreated_GEMO+0.1))
+  left_join(MPNuninvaded)%>%
+  mutate(proportion_MPN=((ln_MPN+0.1)-(uninvaded_uninvaded+0.1))/(uninvaded_uninvaded+0.1))
 
-summary(aov(proportion_MPN ~ soil_trt_spp, data=subset(MPNgemoRem, species=='ACGL')))
-#t-tests to identify differences from 0 (no proportional difference from untreated GEMO invaded areas)
+
+summary(lme(proportion_MPN ~ soil_trt_spp, random=~1|soil_site, data=subset(MPNgemoRem, species=='ACGL')))
+#t-tests to identify differences from 0 (no proportional difference from uninvaded areas)
 test <- subset(MPNgemoRem, soil_trt_spp=='pulled_GEMO'&species=='ACGL')
 t.test(test$proportion_MPN, mu=0)
 test <- subset(MPNgemoRem, soil_trt_spp=='herbicided_GEMO'&species=='ACGL')
