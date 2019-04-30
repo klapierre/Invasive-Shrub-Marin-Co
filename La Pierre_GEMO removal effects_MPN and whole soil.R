@@ -122,7 +122,7 @@ acglRemovalPlot <- ggplot(data=barGraphStats(data=subset(MPNgemo, species=='ACGL
   scale_fill_manual(values=c('#808080', '#808080')) +
   annotate('text', x=1, y=0.15, label='a', size=8) +
   annotate('text', x=2, y=2.5, label='b', size=8) +
-  annotate('text', x=0.5, y=2.5, label='(a) ACGL', size=8, hjust='left')
+  annotate('text', x=0.5, y=2.5, label=expression(paste('(a) ',italic('A. glaber'))), size=8, hjust='left')
 
 lubiRemovalPlot <- ggplot(data=barGraphStats(data=subset(MPNgemo, species=='LUBI'), variable="ln_MPN", byFactorNames=c("species", "soil_trt_spp")), aes(x=soil_trt_spp, y=mean, fill=soil_trt_spp)) +
   geom_bar(stat='identity', position=position_dodge()) +
@@ -133,7 +133,7 @@ lubiRemovalPlot <- ggplot(data=barGraphStats(data=subset(MPNgemo, species=='LUBI
   scale_fill_manual(values=c('#808080', '#808080')) +
   # annotate('text', x=1, y=0.15, label='a', size=8) +
   # annotate('text', x=2, y=3.2, label='b', size=8) +
-  annotate('text', x=0.5, y=3.2, label='(b) LUBI', size=8, hjust='left')
+  annotate('text', x=0.5, y=3.2, label=expression(paste('(b) ',italic('L. bicolor'))), size=8, hjust='left')
 
 lunaRemovalPlot <- ggplot(data=barGraphStats(data=subset(MPNgemo, species=='LUNA'), variable="ln_MPN", byFactorNames=c("species", "soil_trt_spp")), aes(x=soil_trt_spp, y=mean, fill=soil_trt_spp)) +
   geom_bar(stat='identity', position=position_dodge()) +
@@ -144,7 +144,7 @@ lunaRemovalPlot <- ggplot(data=barGraphStats(data=subset(MPNgemo, species=='LUNA
   scale_fill_manual(values=c('#808080', '#808080')) +
   annotate('text', x=1, y=0.6, label='a', size=8) +
   annotate('text', x=2, y=4, label='b', size=8) +
-  annotate('text', x=0.5, y=4, label='(c) LUNA', size=8, hjust='left')
+  annotate('text', x=0.5, y=4, label=expression(paste('(c) ',italic('L. nanus'))), size=8, hjust='left')
 
 gemoRemovalPlot <- ggplot(data=barGraphStats(data=subset(MPNgemo, species=='GEMO'), variable="ln_MPN", byFactorNames=c("species", "soil_trt_spp")), aes(x=soil_trt_spp, y=mean, fill=soil_trt_spp)) +
   geom_bar(stat='identity', position=position_dodge()) +
@@ -155,7 +155,7 @@ gemoRemovalPlot <- ggplot(data=barGraphStats(data=subset(MPNgemo, species=='GEMO
   scale_fill_manual(values=c('#808080', '#808080')) +
   annotate('text', x=1, y=0.7, label='a', size=8) +
   annotate('text', x=2, y=5.5, label='b', size=8) +
-  annotate('text', x=0.5, y=5.5, label='(d) GEMO', size=8, hjust='left')
+  annotate('text', x=0.5, y=6.0, label=expression(paste('(d) ',italic('G. monspessulana'))), size=8, hjust='left')
 
 #4 panel figure
 pushViewport(viewport(layout=grid.layout(1,4)))
