@@ -408,9 +408,9 @@ lunaRemovalPlot <- ggplot(data=barGraphStats(data=subset(proportionDifference, s
   theme(legend.position='none', axis.title.y=element_text(margin=margin(r=10)), axis.title.x=element_blank())  +
   scale_fill_manual(values=c('#808080', '#808080', '#808080')) +
   geom_abline(intercept=0, slope=0, linetype=1) +
-  annotate('text', x=1, y=1.4, label='a', size=8) +
-  annotate('text', x=2, y=4.3, label='b', size=8) +
-  annotate('text', x=3, y=2.6, label='b*', size=8) +
+  annotate('text', x=1, y=1.3, label='a', size=8) +
+  annotate('text', x=2, y=4.2, label='b', size=8) +
+  annotate('text', x=3, y=2.5, label='b*', size=8) +
   annotate('text', x=0.5, y=4.3, label=expression(paste('(b) ',italic('L. nanus'))), size=8, hjust='left')
 
 gemoRemovalPlot <- ggplot(data=barGraphStats(data=subset(proportionDifference, soil_trt_spp %in% c('pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO')&species=='GEMO'), variable="total_diff", byFactorNames=c("species", "soil_trt_spp")), aes(x=soil_trt_spp, y=mean, fill=soil_trt_spp)) +
@@ -421,9 +421,9 @@ gemoRemovalPlot <- ggplot(data=barGraphStats(data=subset(proportionDifference, s
   theme(legend.position='none', axis.title.y=element_text(margin=margin(r=10)), axis.title.x=element_blank())  +
   scale_fill_manual(values=c('#808080', '#808080', '#808080')) +
   geom_abline(intercept=0, slope=0, linetype=1) +
-  annotate('text', x=1, y=0.9, label='a*', size=8) +
-  annotate('text', x=2, y=1.2, label='b*', size=8) +
-  annotate('text', x=3, y=1.1, label='b*', size=8) +
+  annotate('text', x=1, y=0.8, label='*', size=8) +
+  annotate('text', x=2, y=1.1, label='*', size=8) +
+  annotate('text', x=3, y=1.0, label='*', size=8) +
   annotate('text', x=0.5, y=1.3, label=expression(paste('(c) ',italic('G. monspessulana'))), size=8, hjust='left')
 
 #3 panel figure
