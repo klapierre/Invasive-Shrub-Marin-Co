@@ -229,7 +229,10 @@ acglRemovalPlot <- ggplot(data=barGraphStats(data=subset(MPNgemoRem, species=='A
   scale_x_discrete(limits=c('pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO'), labels=c('pulled', 'herbic.', 'mowed')) +
   theme(legend.position='none', axis.title.y=element_text(margin=margin(r=10)), axis.title.x=element_blank()) +
   geom_abline(intercept=0, slope=0, linetype=1) +
-  annotate('text', x=0.5, y=35, label=expression(paste('(a) ',italic('A. glaber'))), size=8, hjust='left')
+  annotate('text', x=1, y=4, label='a', size=8) +
+  annotate('text', x=2, y=14, label='a', size=8) +
+  annotate('text', x=3, y=38, label='b', size=8) +
+  annotate('text', x=0.5, y=38, label=expression(paste('(a) ',italic('A. glaber'))), size=8, hjust='left')
 
 lubiRemovalPlot <- ggplot(data=barGraphStats(data=subset(MPNgemoRem, species=='LUBI'), variable="proportion_MPN", byFactorNames=c("soil_trt_spp")), aes(x=soil_trt_spp, y=mean)) +
   geom_bar(stat='identity', position=position_dodge()) +
@@ -416,7 +419,7 @@ lunaRemovalPlot <- ggplot(data=barGraphStats(data=subset(proportionDifference, s
 gemoRemovalPlot <- ggplot(data=barGraphStats(data=subset(proportionDifference, soil_trt_spp %in% c('pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO')&species=='GEMO'), variable="total_diff", byFactorNames=c("species", "soil_trt_spp")), aes(x=soil_trt_spp, y=mean, fill=soil_trt_spp)) +
   geom_bar(stat='identity', position=position_dodge()) +
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
-  ylab('Proportional Biomass Difference') +
+  ylab('') +
   scale_x_discrete(limits=c('pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO'), labels=c('pulled', 'herbic.', 'mowed')) +
   theme(legend.position='none', axis.title.y=element_text(margin=margin(r=10)), axis.title.x=element_blank())  +
   scale_fill_manual(values=c('#808080', '#808080', '#808080')) +
