@@ -225,7 +225,7 @@ t.test(test$proportion_MPN, mu=0)
 acglRemovalPlot <- ggplot(data=barGraphStats(data=subset(MPNgemoRem, species=='ACGL'), variable="proportion_MPN", byFactorNames=c("soil_trt_spp")), aes(x=soil_trt_spp, y=mean)) +
   geom_bar(stat='identity', position=position_dodge()) +
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
-  ylab('Proportional MPN Difference') +
+  ylab('Proportional MPN Difference\n([treated - uninv.] / uninv.)') +
   scale_x_discrete(limits=c('pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO'), labels=c('pulled', 'herbic.', 'mowed')) +
   theme(legend.position='none', axis.title.y=element_text(margin=margin(r=10)), axis.title.x=element_blank()) +
   geom_abline(intercept=0, slope=0, linetype=1) +
@@ -297,7 +297,7 @@ biomass <- read.csv('La Pierre_MC_whole soil_biomass_2017.csv')%>%
   #calculate total biomass
   spread(key=root_shoot, value=mass_g)%>%
   mutate(total_mass=root+shoot)%>%
-  #drop biomass samples without both root and shoot for now (fix this)
+  #drop biomass samples without both root and shoot biomass (missing envelopes for some samples)
   filter(total_mass!='NA')
 
 ###compare uninvaded vs invaded
@@ -395,7 +395,7 @@ t.test(test$total_diff, mu=0)
 acglRemovalPlot <- ggplot(data=barGraphStats(data=subset(proportionDifference, soil_trt_spp %in% c('pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO')&species=='ACGL'), variable="total_diff", byFactorNames=c("species", "soil_trt_spp")), aes(x=soil_trt_spp, y=mean, fill=soil_trt_spp)) +
   geom_bar(stat='identity', position=position_dodge()) +
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se, width=0.2), position=position_dodge(0.9)) +
-  ylab('Proportional Biomass Difference') +
+  ylab('Proportional Biomass Difference\n([treated - uninv.] / uninv.)') +
   scale_x_discrete(limits=c('pulled_GEMO', 'herbicided_GEMO', 'mowed_GEMO'), labels=c('pulled', 'herbic.', 'mowed')) +
   theme(legend.position='none', axis.title.y=element_text(margin=margin(r=10)), axis.title.x=element_blank())  +
   scale_fill_manual(values=c('#808080', '#808080', '#808080')) +
