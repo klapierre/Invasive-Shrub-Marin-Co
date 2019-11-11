@@ -339,7 +339,7 @@ gemoRemovalPlot <- ggplot(data=barGraphStats(data=subset(biomass, soil_trt_spp %
   scale_fill_manual(values=c('#808080', '#808080')) +
   annotate('text', x=1, y=0.07, label='a', size=8) +
   annotate('text', x=2, y=0.135, label='b', size=8) +
-  annotate('text', x=0.5, y=0.15, label=expression(paste('(d) ',italic('G. monspessulana'))), size=8, hjust='left')
+  annotate('text', x=0.5, y=0.15, label=expression(paste('(c) ',italic('G. monspessulana'))), size=8, hjust='left')
 
 #3 panel figure
 pushViewport(viewport(layout=grid.layout(1,3)))
